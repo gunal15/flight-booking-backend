@@ -14,6 +14,18 @@ var instance = new Razorpay({
   key_secret: 'gWwfvb4Xo9R2e0JtWlstwV8c',
 });
 
+const Razorpay = require('razorpay');
+var instance = new Razorpay({ key_id: 'YOUR_KEY_ID', key_secret: 'YOUR_SECRET' })
+
+var options = {
+  amount: 200,  // amount in the smallest currency unit
+  currency: "INR",
+  receipt: "order_rcptid_11"
+};
+instance.orders.create(options, function(err, order) {
+  console.log(order);
+});
+
 mongoose
   .connect(process.env.MONGO_URL)
   .then(() => console.log("DB Connection Successful"))
