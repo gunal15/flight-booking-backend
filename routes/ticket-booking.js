@@ -2,7 +2,8 @@ const router = require("express").Router();
 const { default: mongoose } = require("mongoose");
 const Ticket = require("../model/Ticket");
 const { verifyToken } = require("./verifytoken");
-const Razorpay = require('razorpay');
+const Razorpay = require("razorpay");
+
 
 // Create a new Razorpay instance with your API key and secret
 const razorpay = new Razorpay({
