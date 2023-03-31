@@ -1,15 +1,7 @@
 const router = require("express").Router();
-const { default: mongoose } = require("mongoose");
 const Ticket = require("../model/Ticket");
 const { verifyToken } = require("./verifytoken");
-const Razorpay = require("razorpay");
-
-
-// Create a new Razorpay instance with your API key and secret
-const razorpay = new Razorpay({
-  key_id: 'rzp_test_XpMWpnZvs94XYZ',
-  key_secret: 'gWwfvb4Xo9R2e0JtWlstwV8c',
-});
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 router.post("/book-ticket/:userid", verifyToken, async (request, response) => {
   const newTicket = new Ticket({
@@ -25,18 +17,20 @@ router.post("/book-ticket/:userid", verifyToken, async (request, response) => {
   try {
     const savedTicket = await newTicket.save();
 
-    // Create a new payment order with the ticket price
-    const order = await razorpay.orders.create({
-      amount: savedTicket.price * 100, // amount in paise (i.e. 500 rupees)
-      currency: 'INR',
-      receipt: savedTicket._id.toString(),
-      payment_capture: 1,
+    // Create a new payment intent with the ticket price
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: savedTicket.price * 100, // amount in cents
+      currency: "usd",
+      payment_method_types: ["card"],
+      metadata: {
+        ticket_id: savedTicket._id.toString(),
+      },
     });
 
     response.status(200).json({
       message: "Ticket booked!",
       savedTicket,
-      order_id: order.id, // Send the order ID to the front-end
+      client_secret: paymentIntent.client_secret, // Send the client secret to the front-end
     });
   } catch (error) {
     response.status(500).json(error);
